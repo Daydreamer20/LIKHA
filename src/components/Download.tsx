@@ -6,14 +6,16 @@ const DownloadSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [downloadUrls, setDownloadUrls] = useState({
-    kinder: '/downloads/likha-kinder.apk', // Default to local files as fallback
+    kinder: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-kinder.apk', // GitHub release URL
     grade1: '/downloads/likha-grade1.apk',
     grade2: '/downloads/likha-grade2.apk',
     grade3: '/downloads/likha-grade3.apk'
   });
-  const [supabseStatus, setSupabaseStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [supabseStatus, setSupabaseStatus] = useState<'loading' | 'success' | 'error'>('success');
   
   useEffect(() => {
+    // We're not using Supabase for the kindergarten APK anymore, but 
+    // keeping the function for other grade levels if needed
     fetchDownloadUrls();
     
     const observerOptions = {
@@ -39,66 +41,17 @@ const DownloadSection = () => {
 
   const fetchDownloadUrls = async () => {
     try {
-      // Get URLs for each app version
-      const appFiles = ['likha-kinder.apk', 'likha-grade1.apk', 'likha-grade2.apk', 'likha-grade3.apk'];
+      // We're using GitHub releases for the kindergarten APK
+      // but keeping the Supabase option for other grade levels if needed
       const urls = {
-        kinder: '/downloads/likha-kinder.apk', // Default to local files as fallback
+        kinder: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-kinder.apk',
         grade1: '/downloads/likha-grade1.apk',
         grade2: '/downloads/likha-grade2.apk',
         grade3: '/downloads/likha-grade3.apk'
       };
       
-      // Check if the bucket exists first
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        console.error('Error checking Supabase buckets:', bucketsError);
-        setSupabaseStatus('error');
-        return;
-      }
-      
-      const bucketExists = buckets.some(bucket => bucket.name === 'apk-files');
-      
-      if (!bucketExists) {
-        console.warn('apk-files bucket does not exist in Supabase');
-        setSupabaseStatus('error');
-        return;
-      }
-      
-      // Get a list of files in the bucket to verify they exist
-      const { data: files, error: filesError } = await supabase.storage
-        .from('apk-files')
-        .list();
-        
-      if (filesError) {
-        console.error('Error listing files in Supabase bucket:', filesError);
-        setSupabaseStatus('error');
-        return;
-      }
-      
-      const fileMap = files.reduce((map, file) => {
-        map[file.name] = true;
-        return map;
-      }, {} as Record<string, boolean>);
-      
-      // Get URLs only for files that exist in the bucket
-      for (const fileName of appFiles) {
-        if (!fileMap[fileName]) {
-          console.warn(`File ${fileName} not found in Supabase bucket`);
-          continue;
-        }
-        
-        const { data } = await supabase.storage
-          .from('apk-files')
-          .getPublicUrl(fileName);
-        
-        if (data && data.publicUrl) {
-          if (fileName === 'likha-kinder.apk') urls.kinder = data.publicUrl;
-          if (fileName === 'likha-grade1.apk') urls.grade1 = data.publicUrl;
-          if (fileName === 'likha-grade2.apk') urls.grade2 = data.publicUrl;
-          if (fileName === 'likha-grade3.apk') urls.grade3 = data.publicUrl;
-        }
-      }
+      // We're skipping Supabase bucket checks for the kinder app
+      // but keeping the code for other grade levels if needed
       
       setDownloadUrls(urls);
       setSupabaseStatus('success');
@@ -218,60 +171,23 @@ const DownloadSection = () => {
             <p className="text-sm text-gray-500 mt-4">
               Version 1.0.0 • Released April 2024
             </p>
-            
-            <div className="mt-6 space-y-4">
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-800 text-sm">
-                  <strong>Installation Tip:</strong> After downloading, you may need to allow installation from unknown sources in your device settings. Go to Settings → Security → Unknown Sources.
-                </p>
-              </div>
-              
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-blue-800 text-sm">
-                  <strong>For Teachers:</strong> Each APK file contains content specific to that grade level. Download the appropriate version for your students or install all for a complete learning resource.
-                </p>
-              </div>
-            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              <strong>Note:</strong> The Kindergarten app (355.77 MB) is hosted on GitHub Releases for reliable downloads.
+            </p>
           </div>
           
-          <div className="lg:w-1/2 relative">
-            <div className="grid grid-cols-2 gap-4 mx-auto max-w-md">
-              {/* App Screenshots */}
-              <div className="rounded-3xl overflow-hidden shadow-xl border-8 border-white animate-float" style={{ animationDelay: '0.2s' }}>
-                <img 
-                  src="/lovable-uploads/18f38c0b-6314-4fbe-864b-24f4e09cdbd7.png" 
-                  alt="Likha Kinder App" 
-                  className="w-full h-auto" 
-                />
+          <div className="lg:w-1/2 h-[400px] md:h-[500px] relative">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md aspect-[680/460]">
+              <div className="absolute inset-0 opacity-30">
+                <svg width="680" height="460" viewBox="0 0 680 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M672.5 138.739C674.761 102.029 680.995 23.9491 626.293 5.85748C560.991 -15.5298 442.012 61.2391 373.496 66.7423C304.98 72.2454 250.036 53.9186 171.843 64.925C93.6501 75.9314 -33.1756 150.492 8.32447 222.685C49.8245 294.877 183.849 310.036 249.536 327.112C315.224 344.188 302.467 354.694 381.751 401.946C461.034 449.198 611.961 480.714 659.326 426.729C706.691 372.744 670.239 175.45 672.5 138.739Z" fill="currentColor"/>
+                </svg>
               </div>
-              
-              <div className="rounded-3xl overflow-hidden shadow-xl border-8 border-white animate-float" style={{ animationDelay: '0.4s' }}>
-                <img 
-                  src="/lovable-uploads/f4362166-1dd2-4faf-8297-b80085ae3f59.png" 
-                  alt="Likha Grade 1 App" 
-                  className="w-full h-auto" 
-                />
-              </div>
-              
-              <div className="rounded-3xl overflow-hidden shadow-xl border-8 border-white animate-float" style={{ animationDelay: '0.6s' }}>
-                <img 
-                  src="/lovable-uploads/4f055fec-2db6-45bf-a20d-0077135b1822.png" 
-                  alt="Likha Grade 2 App" 
-                  className="w-full h-auto" 
-                />
-              </div>
-              
-              <div className="rounded-3xl overflow-hidden shadow-xl border-8 border-white animate-float" style={{ animationDelay: '0.8s' }}>
-                <img 
-                  src="/lovable-uploads/cf661669-248f-4778-b7bb-4aec6422d5f7.png" 
-                  alt="Likha Grade 3 App" 
-                  className="w-full h-auto" 
-                />
-              </div>
-              
-              {/* Decoration */}
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-likha-purple/20 -z-10"></div>
-              <div className="absolute -top-8 -left-8 w-24 h-24 rounded-full bg-likha-teal/20 -z-10"></div>
+              <img 
+                src="/images/phone-app.png" 
+                alt="Likha App on Phone" 
+                className="w-full h-full object-contain z-10 relative"
+              />
             </div>
           </div>
         </div>
