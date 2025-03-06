@@ -43,7 +43,7 @@ const Footer = () => {
         {/* Partner logos */}
         <div className="flex justify-center gap-8 mb-8">
           <img 
-            src="/lovable-uploads/b5aea339-b819-4bbe-bdea-14646e56cfcb.png" 
+            src="/lovable-uploads/91c8fbf3-9478-4467-bf19-3d00b98afb89 (1).png" 
             alt="DepEd and Partner Logos" 
             className="h-16 object-contain" 
           />
@@ -51,7 +51,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-200 mt-4 pt-8 text-center text-gray-500 text-sm">
           <p>© {currentYear} Bureau of Learning Resources - Quality Assurance Division. All rights reserved.</p>
-          <p className="mt-2">Likha Application - Engaging and Inclusive Learning for Young Learners</p>
+          <p className="mt-2"></p>
         </div>
       </div>
     </footer>
