@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
 
@@ -6,19 +5,19 @@ const FAQItem = ({ question, answer, isOpen, onClick }: { question: string; answ
   return (
     <div className="border-b border-gray-200 last:border-0">
       <button
-        className="w-full flex justify-between items-center py-5 px-2 text-left"
+        className="w-full flex justify-between items-start md:items-center py-5 px-4 text-left"
         onClick={onClick}
       >
-        <h3 className="font-medium text-lg">{question}</h3>
-        <span className="flex-shrink-0 ml-2">
+        <h3 className="font-medium text-base sm:text-lg mr-4 leading-tight">{question}</h3>
+        <span className="flex-shrink-0 mt-0.5 md:mt-0">
           {isOpen ? <Minus size={18} /> : <Plus size={18} />}
         </span>
       </button>
       
       <div 
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-80 opacity-100 mb-5' : 'max-h-0 opacity-0'}`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 mb-5' : 'max-h-0 opacity-0'}`}
       >
-        <p className="text-gray-600 px-2">{answer}</p>
+        <p className="text-gray-600 px-4 text-sm sm:text-base">{answer}</p>
       </div>
     </div>
   );
@@ -59,21 +58,21 @@ const FAQ = () => {
   };
 
   return (
-    <section id="faq" className="py-20 md:py-32">
-      <div className="container max-w-3xl mx-auto px-6 md:px-12">
-        <div className="text-center mb-16">
+    <section id="faq" className="py-16 md:py-32">
+      <div className="container max-w-3xl mx-auto px-4 sm:px-6 md:px-12">
+        <div className="text-center mb-12 md:mb-16">
           <span className="bg-likha-purple/10 text-likha-purple text-sm font-medium px-4 py-2 rounded-full">
             Support
           </span>
-          <h2 className="font-display text-3xl md:text-4xl font-bold mt-4 mb-6">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mt-4 mb-4 md:mb-6">
             Frequently Asked Questions
           </h2>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-base sm:text-lg mx-auto max-w-xl">
             Find answers to common questions about the Likha application.
           </p>
         </div>
 
-        <div className="glass rounded-2xl p-6 md:p-8">
+        <div className="glass rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 mx-auto max-w-2xl shadow-sm">
           {faqs.map((faq, index) => (
             <FAQItem
               key={index}
