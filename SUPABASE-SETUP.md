@@ -6,7 +6,8 @@ This document provides instructions on how to set up Supabase storage for hostin
 
 1. A Supabase account (sign up at [supabase.com](https://supabase.com) if you don't have one)
 2. The APK files you want to upload
-3. Node.js installed on your computer
+3. Node.js version 14.16.0 or later installed on your computer
+4. The @supabase/supabase-js package (install with `npm install @supabase/supabase-js`)
 
 ## Step 1: Set Up Your Supabase Project
 
@@ -48,6 +49,13 @@ The script will:
 2. Set the bucket to be publicly accessible
 3. Upload the APK file with the proper name
 4. Provide you with a public URL for the file
+
+### Script Notes
+
+The upload script uses ES modules (not CommonJS), which means:
+- It requires Node.js version 14.16.0 or later
+- It uses `import` syntax instead of `require()`
+- Your project is already configured correctly with `"type": "module"` in package.json
 
 ## Step 4: Verify Your Setup
 
