@@ -27,7 +27,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center gap-2">
           <img 
-            src="/lovable-uploads/91c8fbf3-9478-4467-bf19-3d00b98afb89 (1).png" 
+            src="/lovable-uploads/Makabasa_mascot_merged_12-20-23 (2).png" 
             alt="DepEd Logo" 
             className="h-8 object-contain"
           />

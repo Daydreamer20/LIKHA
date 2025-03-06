@@ -23,8 +23,8 @@ const Hero = () => {
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-likha-blue via-likha-purple to-likha-teal bg-clip-text text-transparent">
-              Likha Learning<br />
-              <span className="text-gray-800">For Young Minds</span>
+              Likha Application<br />
+              <span className="text-gray-800"></span>
             </h1>
             <p className="text-gray-600 text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
               An engaging and inclusive learning platform designed for Kindergarten to Grade 3 learners, making education interactive, accessible, and fun.
