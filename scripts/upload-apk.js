@@ -8,146 +8,167 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Supabase configuration
-const supabaseUrl = 'https://uveqzdpfaqrnketuutgf.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY || ''; // Use service key for admin operations
+// Supabase configuration - use the correct environment variable
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://uveqzdpfaqrnketuutgf.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// Check if service key is provided
+// Constants
+const BUCKET_NAME = 'apk-files';
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit for free tier
+
 if (!supabaseKey) {
-  console.error('⛔ ERROR: SUPABASE_SERVICE_KEY environment variable not set!');
-  console.log('You need to set your Supabase service key to upload files.');
-  console.log('Get your service key from the Supabase dashboard -> Project Settings -> API');
-  console.log('Then run: SUPABASE_SERVICE_KEY=your_key node scripts/upload-apk.js');
+  console.error('⛔ ERROR: SUPABASE_SERVICE_ROLE_KEY environment variable not set!');
   process.exit(1);
 }
 
 // Initialize Supabase client
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// APK files to upload
-const apkFiles = [
-  { name: 'likha-kinder.apk', path: process.argv[2] || path.join(__dirname, '../public/downloads/likha-kinder.apk') }
-  // Add other APK files when you have them
-  // { name: 'likha-grade1.apk', path: ... },
-  // { name: 'likha-grade2.apk', path: ... },
-  // { name: 'likha-grade3.apk', path: ... }
-];
-
-// Create bucket if it doesn't exist
-async function createBucketIfNotExists() {
+/**
+ * Check if a bucket exists, create it if it doesn't
+ */
+async function ensureBucketExists() {
   try {
-    // Check if bucket exists
-    const { data: buckets, error } = await supabase.storage.listBuckets();
+    console.log(`Checking if bucket '${BUCKET_NAME}' exists...`);
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
     
-    if (error) {
-      throw error;
+    if (bucketsError) {
+      throw new Error(`Error listing buckets: ${bucketsError.message}`);
     }
     
-    const bucketExists = buckets.some(bucket => bucket.name === 'apk-files');
+    const bucketExists = buckets.some(bucket => bucket.name === BUCKET_NAME);
     
     if (!bucketExists) {
-      console.log('Creating "apk-files" bucket...');
-      const { data, error } = await supabase.storage.createBucket('apk-files', {
-        public: true, // Make bucket public
-        fileSizeLimit: 500 * 1024 * 1024 // 500MB limit
+      console.log(`Creating bucket '${BUCKET_NAME}'...`);
+      const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
+        public: true,
+        fileSizeLimit: MAX_FILE_SIZE
       });
       
-      if (error) {
-        throw error;
+      if (createError) {
+        throw new Error(`Error creating bucket: ${createError.message}`);
       }
       
-      console.log('✅ "apk-files" bucket created successfully!');
+      console.log('✅ Bucket created successfully');
     } else {
-      console.log('✅ "apk-files" bucket already exists!');
-    }
-    
-    // Make sure bucket is public
-    const { error: updateError } = await supabase.storage.updateBucket('apk-files', {
-      public: true
-    });
-    
-    if (updateError) {
-      console.warn('Warning: Could not update bucket settings:', updateError.message);
-    } else {
-      console.log('✅ Bucket updated to be public');
+      console.log('✅ Bucket already exists');
+      
+      // Update bucket settings to ensure correct filesize limit
+      const { error: updateError } = await supabase.storage.updateBucket(BUCKET_NAME, {
+        public: true,
+        fileSizeLimit: MAX_FILE_SIZE
+      });
+      
+      if (updateError) {
+        console.warn(`Warning: Could not update bucket settings: ${updateError.message}`);
+      } else {
+        console.log('✅ Bucket settings updated');
+      }
     }
     
     return true;
   } catch (error) {
-    console.error('⛔ Error creating/checking bucket:', error.message);
+    console.error(`⛔ Error with bucket: ${error.message}`);
     return false;
   }
 }
 
-// Upload a file to Supabase storage
-async function uploadFile(fileName, filePath) {
+/**
+ * Upload a file to Supabase Storage
+ */
+async function uploadFile(filePath) {
   try {
-    if (!fs.existsSync(filePath)) {
-      console.error(`⛔ File not found: ${filePath}`);
+    // Get file info
+    const stats = fs.statSync(filePath);
+    const fileName = path.basename(filePath);
+    
+    console.log(`Uploading ${fileName} (${(stats.size / (1024 * 1024)).toFixed(2)} MB)...`);
+    
+    // Check if file exceeds size limit
+    if (stats.size > MAX_FILE_SIZE) {
+      console.error(`⛔ File size (${(stats.size / (1024 * 1024)).toFixed(2)} MB) exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+      console.error('This is a limitation of the Supabase free tier. Consider upgrading your plan or reducing the file size.');
       return false;
     }
     
-    console.log(`Uploading ${fileName}...`);
+    // Check if file already exists (to avoid unnecessary uploads)
+    const { data: existingFiles, error: listError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .list();
+      
+    if (listError) {
+      console.warn(`Warning: Could not check if file already exists: ${listError.message}`);
+    } else if (existingFiles.some(f => f.name === fileName)) {
+      console.log(`File ${fileName} already exists. Updating...`);
+    }
     
-    // Read file
+    // Read file as buffer
     const fileBuffer = fs.readFileSync(filePath);
     
-    // Upload to Supabase
+    // Upload file
     const { data, error } = await supabase.storage
-      .from('apk-files')
+      .from(BUCKET_NAME)
       .upload(fileName, fileBuffer, {
         contentType: 'application/vnd.android.package-archive',
-        upsert: true // Overwrite if exists
+        upsert: true
       });
     
     if (error) {
-      throw error;
+      throw new Error(`Error uploading file: ${error.message}`);
     }
     
     // Get public URL
     const { data: urlData } = await supabase.storage
-      .from('apk-files')
+      .from(BUCKET_NAME)
       .getPublicUrl(fileName);
     
-    console.log(`✅ Uploaded ${fileName} successfully!`);
+    console.log('✅ File uploaded successfully!');
     console.log(`📎 Public URL: ${urlData.publicUrl}`);
     return true;
   } catch (error) {
-    console.error(`⛔ Error uploading ${fileName}:`, error.message);
+    console.error(`⛔ Error uploading file: ${error.message}`);
     return false;
   }
 }
 
-// Main function
 async function main() {
-  console.log('🚀 Starting APK upload to Supabase...');
-  
-  // Create bucket if needed
-  const bucketReady = await createBucketIfNotExists();
-  if (!bucketReady) {
-    process.exit(1);
-  }
-  
-  // Upload each file
-  let successCount = 0;
-  for (const file of apkFiles) {
-    const success = await uploadFile(file.name, file.path);
-    if (success) {
-      successCount++;
+  try {
+    // Get APK file path from command line argument
+    const apkFilePath = process.argv[2];
+    
+    if (!apkFilePath) {
+      console.error('⛔ Please provide the path to the APK file');
+      console.error('Usage: node scripts/upload-apk.js <path-to-apk>');
+      process.exit(1);
     }
-  }
-  
-  console.log(`\n📊 Upload summary: ${successCount}/${apkFiles.length} files uploaded successfully`);
-  
-  if (successCount === apkFiles.length) {
-    console.log('✅ All files uploaded successfully!');
-  } else {
-    console.log('⚠️ Some files failed to upload. Check the errors above.');
+    
+    // Check if file exists
+    if (!fs.existsSync(apkFilePath)) {
+      console.error(`⛔ File not found: ${apkFilePath}`);
+      process.exit(1);
+    }
+    
+    console.log(`🚀 Starting APK upload to Supabase...\n`);
+    
+    // Ensure bucket exists
+    const bucketReady = await ensureBucketExists();
+    if (!bucketReady) {
+      process.exit(1);
+    }
+    
+    // Upload file
+    const uploadSuccess = await uploadFile(apkFilePath);
+    if (!uploadSuccess) {
+      process.exit(1);
+    }
+    
+    console.log('\n✨ Done! The APK is now available on Supabase Storage');
+    console.log('Make sure you update any references in your website to use the new URL');
+    
+  } catch (error) {
+    console.error(`⛔ Error: ${error.message}`);
+    process.exit(1);
   }
 }
 
-// Run the script
-main().catch(err => {
-  console.error('Unhandled error:', err);
-  process.exit(1);
-}); 
+main(); 
