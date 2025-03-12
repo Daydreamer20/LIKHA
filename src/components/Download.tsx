@@ -7,9 +7,9 @@ const DownloadSection = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [downloadUrls, setDownloadUrls] = useState({
     kinder: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-kinder.apk', // GitHub release URL
-    grade1: '/downloads/likha-grade1.apk',
-    grade2: '/downloads/likha-grade2.apk',
-    grade3: '/downloads/likha-grade3.apk'
+    grade1: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-grade1.apk',
+    grade2: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-grade2.apk',
+    grade3: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-grade3.apk'
   });
   const [supabseStatus, setSupabaseStatus] = useState<'loading' | 'success' | 'error'>('success');
   
@@ -41,17 +41,15 @@ const DownloadSection = () => {
 
   const fetchDownloadUrls = async () => {
     try {
-      // We're using GitHub releases for the kindergarten APK
-      // but keeping the Supabase option for other grade levels if needed
+      // We're using GitHub releases for all apps now
       const urls = {
         kinder: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-kinder.apk',
-        grade1: '/downloads/likha-grade1.apk',
-        grade2: '/downloads/likha-grade2.apk',
-        grade3: '/downloads/likha-grade3.apk'
+        grade1: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-grade1.apk',
+        grade2: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-grade2.apk',
+        grade3: 'https://github.com/Daydreamer20/LIKHA/releases/download/v1.0.0/likha-grade3.apk'
       };
       
-      // We're skipping Supabase bucket checks for the kinder app
-      // but keeping the code for other grade levels if needed
+      // We're skipping Supabase bucket checks as we're using GitHub releases
       
       setDownloadUrls(urls);
       setSupabaseStatus('success');
@@ -172,7 +170,7 @@ const DownloadSection = () => {
               Version 1.0.0 • Released April 2024
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              <strong>Note:</strong> The Kindergarten app (355.77 MB) is hosted on GitHub Releases for reliable downloads.
+              <strong>Note:</strong> All apps are now hosted on GitHub Releases for reliable downloads.
             </p>
           </div>
           
